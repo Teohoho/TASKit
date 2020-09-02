@@ -1,6 +1,7 @@
 #imports
 import pymbar.timeseries
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class DecorrelateTimeseries:
