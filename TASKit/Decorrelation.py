@@ -24,8 +24,9 @@ class DecorrelateTimeseries:
         [self.Eq_point, self.statIneff, self.Neff_Max] = pymbar.timeseries.detectEquilibration(self.timeseries_Corr, nskip=1)
         self.timeseries_Decorr = self.timeseries_Corr[self.Eq_point:]
         
-        print ("The equilibration is done at sample number {}, the statistical inefficiency for the post-Eq region is {} and the" +
-                        "number of Decorrelated samples in the post-Eq region is {}".format(self.Eq_point, self.statIneff, self.Neff_Max))
+        print ("The equilibration is done at sample number {}, the statistical\
+                inefficiency for the post-Eq region is {} and the number of\
+                Decorrelated samples in the post-Eq region is {}".format(self.Eq_point, self.statIneff, self.Neff_Max))
          
     def GenerateNEFFPlot(self, fig=None):
     
