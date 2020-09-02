@@ -144,7 +144,7 @@ class TrajLoader:
             print ("Warning! The type of the FramesToKeep array is not int64. This may cause errors!")
          
         
-        TrimmedTraj = self.MDtrajTrajectoryObject.slice(self.decorrelatedSampleIndicesAll)
+        TrimmedTraj = self.MDtrajTrajectoryObject.slice(FramesToKeep)
         print ("The trimmed trajectory has {} frames".format(TrimmedTraj.n_frames))
         
         if (dcdOut is not None):
