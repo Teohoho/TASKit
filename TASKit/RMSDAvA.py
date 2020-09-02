@@ -1,9 +1,3 @@
-import mdtraj as md
-import matplotlib.pyplot as plt
-import numpy as np
-import sys
-
-
 class RMSDAvA:
 
     """A class that calculate an All-vs-All type RMSD matrix, save
