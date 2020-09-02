@@ -1,3 +1,12 @@
+#imports
+
+import simtk.openmm.app
+import simtk.openmm
+import simtk.unit
+
+import mdtraj as md
+import numpy as np
+
 class TrajLoader:
 
     """A class that takes a prmtop and any number of DCDs and generates 
@@ -45,6 +54,9 @@ class TrajLoader:
         
         
         self.MDtrajTrajectoryObject = MDtrajTrajectoryObject
+        
+        ## Load prmtop into an OpenMM object
+        self.OpenMMPrmtop = simtk.openmm.app.AmberPrmtopFile(prmtop)
 
                             
     def GetPotentialEnergies (self, verbose=True, ProgressInt=100, TimeseriesOut=None):
@@ -68,7 +80,6 @@ class TrajLoader:
         
         ##Create OpenMM system
         
-        self.OpenMMPrmtop = simtk.openmm.app.AmberPrmtopFile(prmtop)
         OpenMMSystem = self.OpenMMPrmtop.createSystem(implicitSolvent=None,nonbondedMethod=simtk.openmm.app.NoCutoff) ##Vacuum
 
         
@@ -85,7 +96,7 @@ class TrajLoader:
         ##Iterate over all frames in MDtrajTrajectoryObject, and copy positions to 
         ##OpenMM system
         
-        ##A small bit of code that prints progress messages every 10%-th of progress
+        ##A small bit of code that prints progress messages every ProgressInt-th frame
         progressCheck = 0
         
         for FrameNumber in range(NOFrames):

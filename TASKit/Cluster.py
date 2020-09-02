@@ -1,3 +1,12 @@
+#imports
+import scipy.cluster.hierarchy as sch
+from scipy.spatial.distance import squareform
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+
 class ClusterizeRMSDMatrix:
 
     """A class that will take a RMSD matrix and clusterize its values,
