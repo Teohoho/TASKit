@@ -16,7 +16,7 @@ print ("EPTS Corr length: {}".format(EPTSCorr.shape))
 
 
 ##Decorrelate EP TS
-EPTSDecorr = TASKit.Decorrelation.DecorrelateTimeseries(EPTSCorr, stride=100)
+EPTSDecorr = TASKit.Decorrelation.DecorrelateTimeseries(EPTSCorr, stride=5)
 print ("EPTS Decorr: {}".format(EPTSDecorr))
 
 ##Generate Plot
