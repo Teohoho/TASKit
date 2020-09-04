@@ -107,7 +107,7 @@ class TrajLoader:
             OpenMMSimulation.context.setPositions(self.MDtrajTrajectoryObject.openmm_positions(FrameNumber))
             
             ##Check for unitcell vectors, and apply them if they exist
-            if (self.MDtrajTrajectoryObject.openmm_boxes(FrameNumber) is not None):
+            if (self.MDtrajTrajectoryObject.unitcell_lengths is not None):
                  OpenMMSimulation.context.setPeriodicBoxVectors(self.MDtrajTrajectoryObject.openmm_boxes(FrameNumber)[0], 
                                                                 self.MDtrajTrajectoryObject.openmm_boxes(FrameNumber)[1],
                                                                 self.MDtrajTrajectoryObject.openmm_boxes(FrameNumber)[2])
