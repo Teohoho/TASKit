@@ -38,63 +38,78 @@ class RMSDAvA:
     """
     
     
-    def __init__(self, prmtops,DCDS,stride=1,onlyProt=True): 
+    def __init__(self, prmtops=None,DCDS=None, TrajIn=None,stride=1,onlyProt=True): 
         parmlist,trajlist = isinstance(prmtops, list) , isinstance(DCDS, list)
         
-        ##Check if prmtops and DCDS are lists
-        if (parmlist and trajlist):
-            pass
-        else:
-            print ("Prmtops and DCDS need to be formated as lists.")
-            sys.exit(0)
-        
-        ##Check if they're the same length
-        if (len(prmtops) != len(DCDS)):
-            print ("The number of PRMTOPs (%d) is different than the number of DCD lists (%d)." % (len(prmtops), len(DCDS)))
-            sys.exit(0)   
-
-         ##We assume that we will use many sets of prmtops and DCDs
-        listOfTrajs    = []
-        frameIntervals = np.zeros((len(prmtops), 2), dtype=int)
-        total_frames   = 0   
-        prmtopList     = []
-        
-        
-        for PRMTOPIx in range (len(prmtops)):
-            DCDsToLoad = []     ##This list serves to maek the final list of systems more clear
-            framesLoaded = 0    ##This is used for delimitation of the systems
+        ##Can't use both prmtop/dcd pair AND TrajIn:
+        if ((prmtops is not None and DCDS is not None) and (TrajIn is not None)):
+            print ("Please choose either Prmtop/DCD pair OR MDTraj Traj Object as input.")
+            sys.exit()
             
-            MDtrajTrajectoryObjectPRMTOP = md.load_prmtop(prmtops[PRMTOPIx])
-            if (onlyProt == True):
-                AtomsToLoad = MDtrajTrajectoryObjectPRMTOP.select("protein")
+        ##If user supplies Prmtop/DCD pairs
+        if (prmtops is not None and DCDS is not None):
+            ##Check if prmtops and DCDS are lists
+            if (parmlist and trajlist):
+                pass
             else:
-                AtomsToLoad = None
-            prmtopList.append(prmtops[PRMTOPIx])
-        
-            for DCDIx in range(len(DCDS[PRMTOPIx])):
-                MDtrajTrajectoryObject = md.load_dcd(DCDS[PRMTOPIx][DCDIx], 
-                    top= MDtrajTrajectoryObjectPRMTOP, stride=stride, atom_indices=AtomsToLoad)
-                
-                print ("Loaded DCD {} ({} frames)".format(DCDS[PRMTOPIx][DCDIx], MDtrajTrajectoryObject.n_frames))
-                
-                DCDsToLoad.append(MDtrajTrajectoryObject)
-                framesLoaded = framesLoaded + MDtrajTrajectoryObject.n_frames
+                print ("Prmtops and DCDS need to be formated as lists.")
+                sys.exit(0)
             
-            listOfTrajs.append(md.join(DCDsToLoad))
-            
-            
-            frameIntervals[PRMTOPIx][0] = total_frames
-            total_frames = total_frames + framesLoaded
-            frameIntervals[PRMTOPIx][1] = total_frames
-                
-            print ("Molecule {} loaded!".format(prmtops[PRMTOPIx]))
+            ##Check if they're the same length
+            if (len(prmtops) != len(DCDS)):
+                print ("The number of PRMTOPs (%d) is different than the number of DCD lists (%d)." % (len(prmtops), len(DCDS)))
+                sys.exit(0)   
 
-        print("{} frames have been loaded!".format(total_frames))
+             ##We assume that we will use many sets of prmtops and DCDs
+            listOfTrajs    = []
+            frameIntervals = np.zeros((len(prmtops), 2), dtype=int)
+            total_frames   = 0   
+            
+            
+            for PRMTOPIx in range (len(prmtops)):
+                DCDsToLoad = []     ##This list serves to maek the final list of systems more clear
+                
+                MDtrajTrajectoryObjectPRMTOP = md.load_prmtop(prmtops[PRMTOPIx])
+                if (onlyProt == True):
+                    AtomsToLoad = MDtrajTrajectoryObjectPRMTOP.select("protein")
+                else:
+                    AtomsToLoad = None
+            
+                for DCDIx in range(len(DCDS[PRMTOPIx])):
+                    MDtrajTrajectoryObject = md.load_dcd(DCDS[PRMTOPIx][DCDIx], 
+                        top= MDtrajTrajectoryObjectPRMTOP, stride=stride, atom_indices=AtomsToLoad)
+                    
+                    print ("Loaded DCD {} ({} frames)".format(DCDS[PRMTOPIx][DCDIx], MDtrajTrajectoryObject.n_frames))
+                    
+                    DCDsToLoad.append(MDtrajTrajectoryObject)
+                
+                listOfTrajs.append(md.join(DCDsToLoad))
+                
+                
+                frameIntervals[PRMTOPIx][0] = total_frames
+                total_frames += listOfTrajs[-1].n_frames
+                frameIntervals[PRMTOPIx][1] = total_frames
+                    
+                print ("Molecule {} loaded!".format(prmtops[PRMTOPIx]))
+
+            print("{} frames have been loaded!".format(total_frames))
+        
+        ##If user supplies MDTraj Traj Objects:
+        if (TrajIn is not None):
+            listOfTrajs = []
+            frameIntervals = np.zeros((len(TrajIn), 2), dtype=int)
+            total_frames = 0
+            
+            for TrajIx in range(len(TrajIn)):
+                listOfTrajs.append(TrajIn[TrajIx])
+                frameIntervals[TrajIx][0] = total_frames
+                total_frames += TrajIn[TrajIx].n_frames
+                frameIntervals[TrajIx][1] = total_frames
+
         
         self.listOfTrajs = listOfTrajs
         self.frameIntervals = frameIntervals
         self.total_frames = total_frames
-        self.prmtopList = prmtopList
 
     def CalcRMSD(self, RMSDSele, Verbose=True, RMSDMatrixOut=None, VerbosityCoarseness = 50):
     
@@ -140,9 +155,9 @@ class RMSDAvA:
             atom_numbers[i] = len(atom_indicesRMSD[i])
           
         if (np.amin(atom_numbers) != np.amax(atom_numbers)):
-            print ("The number of atoms selected isn't the same in all systems:", end="\n\n")
+            print ("The number of atoms selected isn't the same in all systems:")
             for i in range(len(self.listOfTrajs)):
-                print (self.prmtopList[i] + ": ", atom_numbers[i])
+                print (self.listOfTrajs[i] + ": ", atom_numbers[i])
             sys.exit(0)
         
         
