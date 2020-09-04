@@ -102,7 +102,7 @@ class TrajLoader:
         for FrameNumber in range(NOFrames):
             
             if ((progressCheck % ProgressInt == 0) and (verbose == True)):
-                print ("Energy calculation is {:4.1f}% done!".format(progressCheck*100/NOFrames))
+                print ("Energy calculation is {:5.1f}% done!".format(progressCheck*100/NOFrames))
             
             OpenMMSimulation.context.setPositions(self.MDtrajTrajectoryObject.openmm_positions(FrameNumber))
             

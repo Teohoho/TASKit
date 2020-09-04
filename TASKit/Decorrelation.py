@@ -28,6 +28,8 @@ class DecorrelateTimeseries:
 inefficiency for the post-Eq region is {} and the number of \
 Decorrelated samples in the post-Eq region is {}".format(self.Eq_point,
 self.statIneff, self.Neff_Max))
+
+        self.stride = stride
          
     def GenerateNEFFPlot(self, fig=None):
     
@@ -83,17 +85,19 @@ self.statIneff, self.Neff_Max))
         """
      
         decorrelatedSampleIndices = pymbar.timeseries.subsampleCorrelatedData(self.timeseries_Decorr, g=self.statIneff)
-        decorrelatedSamples = self.timeseries_Decorr[decorrelatedSampleIndices]
+        self.decorrelatedSamples = self.timeseries_Decorr[decorrelatedSampleIndices]
+        
+        
+        decorrelatedSampleIndicesAll = np.add(decorrelatedSampleIndices, self.Eq_point)
+        decorrelatedSampleIndicesAll = np.multiply(decorrelatedSampleIndicesAll, self.stride) ##To get the actual frame numbers, independent of stride used
         
         if (log is not None):
             with open(log, "w") as OutFN:
-                for i in range(decorrelatedSamples.shape[0]):
-                    OutFN.write(str(decorrelatedSampleIndices[i] + self.Eq_point))
+                for i in range(decorrelatedSampleIndicesAll.shape[0]):
+                    OutFN.write(str(decorrelatedSampleIndicesAll))
                     OutFN.write(" ")
                 OutFN.close()
         
-        decorrelatedSampleIndicesAll = np.add(decorrelatedSampleIndices, self.Eq_point)
         
-        self.decorrelatedSampleIndicesAll = decorrelatedSampleIndicesAll
-        
+                
         return decorrelatedSampleIndicesAll     
