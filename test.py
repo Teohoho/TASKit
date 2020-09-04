@@ -35,5 +35,3 @@ RMSDMat.RMSDAvAHeat()
 
 Clusters = TASKit.Cluster.ClusterizeMatrix(RMSDMat.RMSD_Matrix, 3.25)
 Clusters.GenerateHeatmap()
-
-print("test")
