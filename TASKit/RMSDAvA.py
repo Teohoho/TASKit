@@ -5,113 +5,8 @@ import matplotlib.pyplot as plt
 import sys
 
 class RMSDAvA:
-
-    """A class that calculate an All-vs-All type RMSD matrix, save
-       it to disk for future use, and generate a detailed heatmap of said matrix
-       
-    Parameters
-    ----------
-    
-    prmtops: list
-             A list object containing the PRMTOPs of the systems for which RMSDS
-             will be calculated
-    DCDS: list
-             A nested list which contains the DCDS for the PRMTOPs. Its length needs
-             to be the same as prmtops, since each PRMTOP needs its own DCD list
-
-    stride: int, default=1
-             Use this stride when loading the trajectories
-    onlyProt: bool, default=True   
-             If true, then load only the protein atoms. This saves memory, since most
-             DCDs also contain more water atoms than protein atoms, and they are often
-             not taken into account when calculating RMSD
-             
-    Notes
-    -----
-    
-    An example of a valid pair of PRMTOPs and DCDS is:
-    prmtops = [prmtop1, prmtop2]
-    DCDS = [[DCD11, DCD12, DCD13], [DCD21, DCD22]]
-     
-    Also, this uses MDTraj to load parameters and trajectories.
-    
-    """
-    
-    
-    def __init__(self, prmtops=None,DCDS=None, TrajIn=None,stride=1,onlyProt=True): 
-        parmlist,trajlist = isinstance(prmtops, list) , isinstance(DCDS, list)
-        
-        ##Can't use both prmtop/dcd pair AND TrajIn:
-        if ((prmtops is not None and DCDS is not None) and (TrajIn is not None)):
-            print ("Please choose either Prmtop/DCD pair OR MDTraj Traj Object as input.")
-            sys.exit()
-            
-        ##If user supplies Prmtop/DCD pairs
-        if (prmtops is not None and DCDS is not None):
-            ##Check if prmtops and DCDS are lists
-            if (parmlist and trajlist):
-                pass
-            else:
-                print ("Prmtops and DCDS need to be formated as lists.")
-                sys.exit(0)
-            
-            ##Check if they're the same length
-            if (len(prmtops) != len(DCDS)):
-                print ("The number of PRMTOPs (%d) is different than the number of DCD lists (%d)." % (len(prmtops), len(DCDS)))
-                sys.exit(0)   
-
-             ##We assume that we will use many sets of prmtops and DCDs
-            listOfTrajs    = []
-            frameIntervals = np.zeros((len(prmtops), 2), dtype=int)
-            total_frames   = 0   
-            
-            
-            for PRMTOPIx in range (len(prmtops)):
-                DCDsToLoad = []     ##This list serves to maek the final list of systems more clear
-                
-                MDtrajTrajectoryObjectPRMTOP = md.load_prmtop(prmtops[PRMTOPIx])
-                if (onlyProt == True):
-                    AtomsToLoad = MDtrajTrajectoryObjectPRMTOP.select("protein")
-                else:
-                    AtomsToLoad = None
-            
-                for DCDIx in range(len(DCDS[PRMTOPIx])):
-                    MDtrajTrajectoryObject = md.load_dcd(DCDS[PRMTOPIx][DCDIx], 
-                        top= MDtrajTrajectoryObjectPRMTOP, stride=stride, atom_indices=AtomsToLoad)
-                    
-                    print ("Loaded DCD {} ({} frames)".format(DCDS[PRMTOPIx][DCDIx], MDtrajTrajectoryObject.n_frames))
-                    
-                    DCDsToLoad.append(MDtrajTrajectoryObject)
-                
-                listOfTrajs.append(md.join(DCDsToLoad))
-                
-                
-                frameIntervals[PRMTOPIx][0] = total_frames
-                total_frames += listOfTrajs[-1].n_frames
-                frameIntervals[PRMTOPIx][1] = total_frames
-                    
-                print ("Molecule {} loaded!".format(prmtops[PRMTOPIx]))
-
-            print("{} frames have been loaded!".format(total_frames))
-        
-        ##If user supplies MDTraj Traj Objects:
-        if (TrajIn is not None):
-            listOfTrajs = []
-            frameIntervals = np.zeros((len(TrajIn), 2), dtype=int)
-            total_frames = 0
-            
-            for TrajIx in range(len(TrajIn)):
-                listOfTrajs.append(TrajIn[TrajIx])
-                frameIntervals[TrajIx][0] = total_frames
-                total_frames += TrajIn[TrajIx].n_frames
-                frameIntervals[TrajIx][1] = total_frames
-
-        
-        self.listOfTrajs = listOfTrajs
-        self.frameIntervals = frameIntervals
-        self.total_frames = total_frames
-
-    def CalcRMSD(self, RMSDSele, Verbose=True, RMSDMatrixOut=None, VerbosityCoarseness = 50):
+   
+    def __init__ (self, TrajIn, RMSDSele, Verbose=True, RMSDMatrixOut=None, VerbosityCoarseness = 50):
     
         """
         The function that actually calculates the RMSD of the structures
@@ -119,6 +14,10 @@ class RMSDAvA:
         
         Parameters
         ----------
+        
+        TrajIn:   MDTrajTrajectory Object
+                    Trajectories whose RMSD will be calculated.
+        
         
         RMSDSele: str
                     Selection of atoms to use in calculating the RMSD between
@@ -140,24 +39,38 @@ class RMSDAvA:
                     So, the script only prints when (current_Frame % VerbosityCoarseness) == 0
         
         """
+        ## Define frameIntervals
+        
+        frameIntervals = np.zeros((len(TrajIn), 2), dtype=int)
+        total_frames = 0
+        for TrajIx in range(len(TrajIn)):
+            frameIntervals[TrajIx][0] = total_frames
+            total_frames+=TrajIn[TrajIx].n_frames
+            frameIntervals[TrajIx][1] = total_frames
+            
+        print ("{} systems have been loaded, with a total of {} frames".format(len(TrajIn), total_frames))    
+        
+        self.frameIntervals = frameIntervals
+        self.total_frames   = total_frames
+        
         
         ##Determine atom_indices for each system:
         atom_indicesRMSD = []
-        for syst in self.listOfTrajs:
+        for syst in TrajIn:
             atom_indicesRMSD.append(syst.topology.select(RMSDSele))
         
         atom_indicesRMSD = np.array(atom_indicesRMSD)
         print (atom_indicesRMSD)
     
         ##Do a check if the RMSDSele containts the same number of atoms in all prmtops
-        atom_numbers = np.empty(len(self.listOfTrajs), dtype=int)
+        atom_numbers = np.empty(len(self.TrajIn), dtype=int)
         for i in range(len(atom_indicesRMSD)):
             atom_numbers[i] = len(atom_indicesRMSD[i])
           
         if (np.amin(atom_numbers) != np.amax(atom_numbers)):
             print ("The number of atoms selected isn't the same in all systems:")
-            for i in range(len(self.listOfTrajs)):
-                print (self.listOfTrajs[i] + ": ", atom_numbers[i])
+            for i in range(len(TrajIn)):
+                print (TrajIn[i] + ": ", atom_numbers[i])
             sys.exit(0)
         
         
@@ -167,22 +80,22 @@ class RMSDAvA:
         RMSD_Tot = np.full(self.total_frames, -1, dtype=float)
         curr_frame = 1
         
-        for refIx in range(len(self.listOfTrajs)):
-            for frameNum in range(self.listOfTrajs[refIx].n_frames):
+        for refIx in range(len(TrajIn)):
+            for frameNum in range(TrajIn[refIx].n_frames):
                 if (Verbose == True):
                     if (curr_frame % VerbosityCoarseness == 0):
                         print ("All-vs-All calculation is {:4.1f}% done!".format((curr_frame*100/self.total_frames)))
                     curr_frame +=1
-                for targIx in range(len(self.listOfTrajs)):
+                for targIx in range(len(TrajIn)):
         
-                    RMSD_ij[self.frameIntervals[targIx][0]:self.frameIntervals[targIx][1]] = md.rmsd(self.listOfTrajs[targIx], self.listOfTrajs[refIx], frame=frameNum, atom_indices = atom_indicesRMSD[targIx], ref_atom_indices = atom_indicesRMSD[refIx])
+                    RMSD_ij[self.frameIntervals[targIx][0]:self.frameIntervals[targIx][1]] = md.rmsd(TrajIn[targIx], TrajIn[refIx], frame=frameNum, atom_indices = atom_indicesRMSD[targIx], ref_atom_indices = atom_indicesRMSD[refIx])
                 
                 RMSD_Tot = np.vstack((RMSD_Tot, RMSD_ij))
           
         RMSD_Tot = np.delete(RMSD_Tot, 0, 0)
         
-        ##Make all diagonals 0 (MDTraj has an issue with this, making the diags a very low
-        ##which is dfferent to 0.
+        ##Make all diagonals 0 (MDTraj has an issue with this, making the diags a very low number
+        ##which is dfferent to 0).
         
         for i in range (RMSD_Tot.shape[0]):
             RMSD_Tot[i][i] = 0
@@ -199,10 +112,12 @@ class RMSDAvA:
             print ("Saving RMSD matrix to file {}…".format(RMSDMatrixOut))
             np.save(RMSDMatrixOut, RMSD_Tot)
 
+        self.RMSD_Tot = RMSD_Tot
+
         return(RMSD_Tot)
         
 
-    def RMSDAvAHeat(self, RMSDMatrixIn, vmax=None, SaveFigName=None, show=True):
+    def RMSDAvAHeat(self, vmax=None, SaveFigName=None, show=True):
         
         """
         This function generates (and optionally saves) a heatmap of
@@ -211,9 +126,6 @@ class RMSDAvA:
         Parameters
         ----------
         
-        RMSDMatrixIn: numpy.ndarray
-           The RMSD Matrix to represent.    
-                    
         vmax: int
             Maximum value on the colorbar.        
         
@@ -234,7 +146,7 @@ class RMSDAvA:
             
         """
 
-        heatmap = plt.imshow(RMSDMatrixIn, cmap="jet", vmax=vmax)
+        heatmap = plt.imshow(self.RMSD_Tot, cmap="jet", vmax=vmax)
 
         colormap = plt.colorbar(heatmap)
         colormap.ax.tick_params(labelsize=14)

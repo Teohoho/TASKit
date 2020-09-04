@@ -21,15 +21,17 @@ print ("EPTS Decorr: {}".format(EPTSDecorr))
 
 ##Generate Plot
 
-EPTSDecorr.GenerateNEFFPlot()
+#EPTSDecorr.GenerateNEFFPlot()
 
 ##Print decorr frames
 DecorrFrames = EPTSDecorr.GetDecorrSamples()
-print ("Decorr Frames: {}".format(DecorrFrames))
+#print ("Decorr Frames: {}".format(DecorrFrames))
 
 ##Generate new DCD with Decorr Frames
 TrimmedTraj = test_load.TrimTraj(DecorrFrames)
 print ("TrimmedTraj: {}".format(TrimmedTraj))
 
+RMSDMat = TASKit.RMSDAvA(TrimmedTraj, RMSDSele="backbone")
+print (RMSDMat)
 
-
+RMSDMat.RMSDAvAHeat
