@@ -58,6 +58,7 @@ class TrajLoader:
         ## Load prmtop into an OpenMM object
         self.OpenMMPrmtop = simtk.openmm.app.AmberPrmtopFile(prmtop)
 
+        self.prmtop=prmtop
                             
     def GetPotentialEnergies (self, verbose=True, ProgressInt=100, TimeseriesOut=None):
        
@@ -102,7 +103,7 @@ class TrajLoader:
         for FrameNumber in range(NOFrames):
             
             if ((progressCheck % ProgressInt == 0) and (verbose == True)):
-                print ("Energy calculation is {:5.1f}% done!".format(progressCheck*100/NOFrames))
+                print ("Energy calculation is {:5.1f}% done! (System: {})".format(progressCheck*100/NOFrames, self.prmtop))
             
             OpenMMSimulation.context.setPositions(self.MDtrajTrajectoryObject.openmm_positions(FrameNumber))
             

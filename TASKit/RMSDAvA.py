@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-class RMSDAvA:
+class Calc:
    
     def __init__ (self, TrajIn, RMSDSele, Verbose=True, RMSDMatrixOut=None, VerbosityCoarseness = 50):
     
@@ -39,8 +39,15 @@ class RMSDAvA:
                     So, the script only prints when (current_Frame % VerbosityCoarseness) == 0
         
         """
+
+        ## If only 1 traj loaded, it's best to insert it into a list.
+
+        if (isinstance(TrajIn,md.core.trajectory.Trajectory)):
+            Trajs = []
+            Trajs.append(TrajIn)
+
+            TrajIn = Trajs
         ## Define frameIntervals
-        
         frameIntervals = np.zeros((len(TrajIn), 2), dtype=int)
         total_frames = 0
         for TrajIx in range(len(TrajIn)):
@@ -60,10 +67,9 @@ class RMSDAvA:
             atom_indicesRMSD.append(syst.topology.select(RMSDSele))
         
         atom_indicesRMSD = np.array(atom_indicesRMSD)
-        print (atom_indicesRMSD)
     
         ##Do a check if the RMSDSele containts the same number of atoms in all prmtops
-        atom_numbers = np.empty(len(self.TrajIn), dtype=int)
+        atom_numbers = np.empty(len(TrajIn), dtype=int)
         for i in range(len(atom_indicesRMSD)):
             atom_numbers[i] = len(atom_indicesRMSD[i])
           
@@ -112,10 +118,7 @@ class RMSDAvA:
             print ("Saving RMSD matrix to file {}…".format(RMSDMatrixOut))
             np.save(RMSDMatrixOut, RMSD_Tot)
 
-        self.RMSD_Tot = RMSD_Tot
-
-        return(RMSD_Tot)
-        
+        self.RMSD_Matrix = RMSD_Tot
 
     def RMSDAvAHeat(self, vmax=None, SaveFigName=None, show=True):
         
@@ -146,7 +149,7 @@ class RMSDAvA:
             
         """
 
-        heatmap = plt.imshow(self.RMSD_Tot, cmap="jet", vmax=vmax)
+        heatmap = plt.imshow(self.RMSD_Matrix, cmap="jet", vmax=vmax)
 
         colormap = plt.colorbar(heatmap)
         colormap.ax.tick_params(labelsize=14)

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 
-class ClusterizeRMSDMatrix:
+class ClusterizeMatrix:
 
     """A class that will take a RMSD matrix and clusterize its values,
         keeping as attributes the cluster numbers and what frames are in
@@ -91,7 +91,7 @@ class ClusterizeRMSDMatrix:
 
         for i in range (len(self.framesInClust)):
             for ClusterPoint in (self.framesInClust[i]):
-                plt.plot(ClusterPoint, ClusterPoint, clusterMarkers[int(i/5)] + clusterColors[i%5])
+                plt.plot(ClusterPoint, ClusterPoint, clusterMarkers[i/5] + clusterColors[i%5])
                 
     
         for ClusterCenterIx in range(len(self.mins)):
