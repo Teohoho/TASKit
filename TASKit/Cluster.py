@@ -86,22 +86,34 @@ class ClusterizeMatrix:
         clusterColors = ['g', 'c', 'y', 'k', 'w']
         clusterMarkers = ['o', 'v', 's', 'p', '*', 'h', 'D']
 
-        ##First we have to plot the RMSD AvA
-        plt.imshow(self.RMSDMatrix, cmap="jet", vmax=vmax)
+        ## First we have to plot the RMSD AvA
+        heatmap = plt.imshow(self.RMSDMatrix, cmap="viridis", vmax=vmax)
+        colormap = plt.colorbar(heatmap)
+ 
+        ## Then we add colored points to mark the clusters
 
         for i in range (len(self.framesInClust)):
             for ClusterPoint in (self.framesInClust[i]):
-                plt.plot(ClusterPoint, ClusterPoint, clusterMarkers[i/5] + clusterColors[i%5])
-                
+                plt.plot(ClusterPoint, ClusterPoint, clusterMarkers[int(i/5)] + clusterColors[i%5], label="Cluster " + str(i+1))
     
         for ClusterCenterIx in range(len(self.mins)):
             plt.plot(self.mins[ClusterCenterIx], self.mins[ClusterCenterIx], "xm")
 
         plt.title("All-vs-All RMSD Heatmap ($\AA\,$) + Cluster Data", fontsize=20)
+       
+        ## Now we add a legend, so we know what point is in what cluster. Note:
+## in order to have a non-redundant legend, we use a dict (since there can't
+## be 2 of the same key in a dict object
+
+        handles,labels = plt.gca().get_legend_handles_labels()
+        test = dict(zip(labels,handles))
+        plt.legend(test.values(),test.keys())
         
+        
+        ## Then just save and/or display
+ 
         if (FigOut is not None):
             plt.savefig(FigOut + ".png", dpi=800)   
     
         if (show == True):
-            plt.show()
-            
+            plt.show() 
