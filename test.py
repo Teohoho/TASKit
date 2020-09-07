@@ -4,8 +4,8 @@ import numpy as np
 import sys
 
 ##Test load
-test_load1 = TASKit.TrajHandle.TrajLoader(prmtop="test/Peptide.prmtop", DCDS="test/Peptide_01.dcd", stride=100 )
-test_load2 = TASKit.TrajHandle.TrajLoader(prmtop="test/Peptide.prmtop", DCDS="test/Peptide_02.dcd", stride=100 )
+test_load1 = TASKit.TrajHandle.TrajLoader(prmtop="test/Peptide.prmtop", DCDS="test/Peptide_01.dcd", stride=1)
+test_load2 = TASKit.TrajHandle.TrajLoader(prmtop="test/Peptide.prmtop", DCDS="test/Peptide_02.dcd", stride=1)
 
 ##Test EP timeseries generation
 EPTSCorr1 = test_load1.GetPotentialEnergies(ProgressInt=10000)
@@ -27,10 +27,10 @@ TrimmedTraj1 = test_load1.TrimTraj(DecorrFrames1)
 TrimmedTraj2 = test_load2.TrimTraj(DecorrFrames2)
 
 RMSDMat = TASKit.RMSDAvA.Calc(TrajIn=[TrimmedTraj1, TrimmedTraj2], RMSDSele="backbone")
-#print ("RMSD FrameIntervals are: {}".format(RMSDMat.frameIntervals))
-print ("RMSD Matrix:\n {}".format(RMSDMat.RMSD_Matrix))
+print ("RMSD FrameIntervals are:\n{}".format(RMSDMat.frameIntervals))
+print ("RMSD Matrix:\n{}".format(RMSDMat.RMSD_Matrix))
 
-#RMSDMat.RMSDAvAHeat()
+RMSDMat.RMSDAvAHeat()
 
 Clusters = TASKit.Cluster.ClusterizeMatrix(RMSDMat.RMSD_Matrix, 3.25)
 Clusters.GenerateHeatmap()
