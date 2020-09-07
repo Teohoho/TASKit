@@ -35,3 +35,6 @@ RMSDMat.RMSDAvAHeat()
 
 Clusters = TASKit.Cluster.ClusterizeMatrix(RMSDMat.RMSD_Matrix, 3.25)
 Clusters.GenerateHeatmap()
+
+print ("If this message has been printed, that means the tests have been passed succesfully.\
+You have all necesarry modules installed. Have a nice day!")
