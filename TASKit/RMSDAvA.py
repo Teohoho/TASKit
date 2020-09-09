@@ -2,6 +2,7 @@
 import mdtraj as md
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly.express as px
 import sys
 
 class Calc:
@@ -37,6 +38,7 @@ class Calc:
         VerbosityCoarseness: int
                     If Verbose=True, this sets how frequent the progress prints should be.
                     So, the script only prints when (current_Frame % VerbosityCoarseness) == 0
+                    
         
         """
 
@@ -120,7 +122,7 @@ class Calc:
 
         self.RMSD_Matrix = RMSD_Tot
 
-    def RMSDAvAHeat(self, vmax=None, SaveFigName=None, show=True):
+    def RMSDAvAHeat(self, vmax=None, SaveFigName=None, show=True, saveHTML=None):
         
         """
         This function generates (and optionally saves) a heatmap of
@@ -137,7 +139,10 @@ class Calc:
             
         show: bool
             Show the heatmap
-            
+         
+        saveHTML: str
+            If not None, saves RMSD Heatmap as an interactive HTML object, to this file.
+                            
             
         Notes
         -----
@@ -146,7 +151,7 @@ class Calc:
             An array of shape(NumberOfSystems, 2), which delimits 
             the frames to each system. Useful for visualzing differences 
             between structures. Generated when this class is instantiated.
-            
+           
         """
 
         heatmap = plt.imshow(self.RMSD_Matrix, cmap="jet", vmax=vmax)
@@ -180,3 +185,9 @@ class Calc:
             plt.savefig(SaveFigName, dpi=800)
         if (show == True):
             plt.show()
+            
+    ##Save as HTML:
+        if (saveHTML is not None):
+            fig = px.imshow(self.RMSD_Matrix, cmap="jet", vmax=vmax)
+            fig.write_html(saveHTML)
+        
