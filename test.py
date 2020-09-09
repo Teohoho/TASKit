@@ -31,7 +31,7 @@ RMSDMat = TASKit.RMSDAvA.Calc(TrajIn=[TrimmedTraj1, TrimmedTraj2], RMSDSele="bac
 print ("RMSD FrameIntervals are: {}".format(RMSDMat.frameIntervals))
 print ("RMSD Matrix: {}".format(RMSDMat.RMSD_Matrix))
 
-RMSDMat.RMSDAvAHeat()
+RMSDMat.RMSDAvAHeat(saveHTML="test01.html")
 
 Clusters = TASKit.Cluster.ClusterizeMatrix(RMSDMat.RMSD_Matrix, 3.25)
 Clusters.GenerateHeatmap()
