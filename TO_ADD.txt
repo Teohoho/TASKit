@@ -1,1 +1,4 @@
-* Test systems. Something small, that would showcase the utility of these tools.
+* Test systems. 2 DCDs of the same systems, to showcase the usefulness of RMSD AvA and the power of the TrajHandler. [Done]
+* The pairwise energy calculation modules.
+* Legends for the Cluster module [Done!]
+* Finish writing "Attributes" for all modules.

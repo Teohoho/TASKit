@@ -1,3 +1,20 @@
+##Licence notices
+#    TASKit: A Python-based kit containing Post-MD analysis tools.
+#    Copyright (C) 2020  Șulea Teodor Asvadur
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>
+
 #imports
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
@@ -86,22 +103,34 @@ class ClusterizeMatrix:
         clusterColors = ['g', 'c', 'y', 'k', 'w']
         clusterMarkers = ['o', 'v', 's', 'p', '*', 'h', 'D']
 
-        ##First we have to plot the RMSD AvA
-        plt.imshow(self.RMSDMatrix, cmap="jet", vmax=vmax)
+        ## First we have to plot the RMSD AvA
+        heatmap = plt.imshow(self.RMSDMatrix, cmap="viridis", vmax=vmax)
+        colormap = plt.colorbar(heatmap)
+ 
+        ## Then we add colored points to mark the clusters
 
         for i in range (len(self.framesInClust)):
             for ClusterPoint in (self.framesInClust[i]):
-                plt.plot(ClusterPoint, ClusterPoint, clusterMarkers[i/5] + clusterColors[i%5])
-                
+                plt.plot(ClusterPoint, ClusterPoint, clusterMarkers[int(i/5)] + clusterColors[i%5], label="Cluster " + str(i+1))
     
         for ClusterCenterIx in range(len(self.mins)):
             plt.plot(self.mins[ClusterCenterIx], self.mins[ClusterCenterIx], "xm")
 
         plt.title("All-vs-All RMSD Heatmap ($\AA\,$) + Cluster Data", fontsize=20)
+       
+        ## Now we add a legend, so we know what point is in what cluster. Note:
+## in order to have a non-redundant legend, we use a dict (since there can't
+## be 2 of the same key in a dict object
+
+        handles,labels = plt.gca().get_legend_handles_labels()
+        test = dict(zip(labels,handles))
+        plt.legend(test.values(),test.keys())
         
+        
+        ## Then just save and/or display
+ 
         if (FigOut is not None):
             plt.savefig(FigOut + ".png", dpi=800)   
     
         if (show == True):
-            plt.show()
-            
+            plt.show() 

@@ -1,1 +1,1 @@
-This test system involves a peptide (YMDGTMSQV), which has undergone a 100ns simulation, resulting in a 50k frames trajectory. The simulation was carried out with openMM. 
+This test system involves a peptide (YMDGTMSQV), which has undergone a 100ns simulation, resulting in a 50k frames trajectory. The simulation was carried out with openMM. There are two such trajectories, both of which are used in the test 
