@@ -27,13 +27,13 @@ TrimmedTraj1 = test_load1.TrimTraj(DecorrFrames1)
 TrimmedTraj2 = test_load2.TrimTraj(DecorrFrames2)
 
 RMSDMat = TASKit.RMSDAvA.Calc(TrajIn=[TrimmedTraj1, TrimmedTraj2], RMSDSele="backbone")
-print ("RMSD FrameIntervals are:\n{}".format(RMSDMat.frameIntervals))
-print ("RMSD Matrix:\n{}".format(RMSDMat.RMSD_Matrix))
+#print ("RMSD FrameIntervals are:\n{}".format(RMSDMat.frameIntervals))
+#print ("RMSD Matrix:\n{}".format(RMSDMat.RMSD_Matrix))
 
 RMSDMat.RMSDAvAHeat(saveHTML="test01.html")
 
-Clusters = TASKit.Cluster.ClusterizeMatrix(RMSDMat.RMSD_Matrix, 3.25)
-Clusters.GenerateHeatmap()
+#Clusters = TASKit.Cluster.ClusterizeMatrix(RMSDMat.RMSD_Matrix, 3.25)
+#Clusters.GenerateHeatmap()
 
 print ("If this message has been printed, that means the tests have been passed succesfully. \
 You have all necesarry modules installed. Have a nice day!")

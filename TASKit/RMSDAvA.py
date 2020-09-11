@@ -20,6 +20,7 @@ import mdtraj as md
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly.express as px
+import plotly.graph_objects as go
 import sys
 
 class Calc:
@@ -205,6 +206,25 @@ class Calc:
             
     ##Save as HTML:
         if (saveHTML is not None):
-            fig = px.imshow(self.RMSD_Matrix, cmap="jet", vmax=vmax)
-            fig.write_html(saveHTML)
+            limits = []
+            fig = px.imshow(self.RMSD_Matrix, color_continuous_scale="jet", zmax=vmax)
+            for i in range(self.frameIntervals.shape[0]-1):
+                CutoffPoint = self.frameIntervals[i][1]-0.5
+            ##Vertical Lines
+                fig.add_trace(go.Scatter(x=[CutoffPoint, CutoffPoint],
+                                         y=[0,self.frameIntervals[-1][1]], 
+                                         hoverinfo=None, 
+                                         showlegend=False, 
+                                         mode='lines',
+                                         line=dict(color="black", width=4)))
+            ##Horizontal Lines
+                fig.add_trace(go.Scatter(x=[0,self.frameIntervals[-1][1]], 
+                                         y=[CutoffPoint, CutoffPoint], 
+                                         hoverinfo=None, 
+                                         showlegend=False, 
+                                         mode='lines',
+                                         line=dict(color="black", width=4)))
+
+            #fig.write_html(saveHTML)
+            fig.show()
         
