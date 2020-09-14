@@ -67,6 +67,7 @@ class Calc:
             Trajs.append(TrajIn)
 
             TrajIn = Trajs
+
         ## Define frameIntervals
         frameIntervals = np.zeros((len(TrajIn), 2), dtype=int)
         total_frames = 0

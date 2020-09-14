@@ -25,34 +25,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
-def GetLimitsOfConsequentialNumbers(ListIn,Stride=1):
-    """ A function that gets limits of consequential number sequences from a large, non-continuous
-        sequence of ordered numbers i.e. :
-
-        [0,1,2,3,6,7,8,9] => [[0,3],[6,9]]
- 
-    Parameters
-    ----------
-
-    ListIn: list 
-        List to be parsed
-    
-    Stride: int
-        Minimum value that separates two consecutive elements of the list
-
-
-    Returns 
-    ----------
-
-    ListOut:
-        Resulting nested list
-
-    """
-
-#    for elementIx in range(len(ListIn)):
-#        if ListIn[elementIx] == ListIn[elementIx+1]-Stride
-
-    return "None"
+import pandas as pd
 
 class ClusterizeMatrix:
 
@@ -69,10 +42,8 @@ class ClusterizeMatrix:
     FClusterCutoff: float
         Value to be used cutoff for fcluster function. (scipy.cluster.hierarchy.fcluster)
     
-    verbosity: bool, default=True  
-        If true, then load only the protein atoms. This saves memory, since most
-        DCDs also contain more water atoms than protein atoms, and they are often
-        not taken into account when calculating RMSD
+    verbosity: bool, default=True 
+        If true, then print cluster-frame info, not just the mins of all frames 
     
     """
 
@@ -118,9 +89,10 @@ class ClusterizeMatrix:
 
         print ("The min of each cluster, RMSD-wise:")
         print (self.mins)
+
         self.RMSDMatrix = RMSDMatrix
-        
-    def GenerateHeatmap(self, FrameIntervals, FigOut=None, show=True, vmax=None, saveHTML=None):
+
+    def GenerateHeatmap(self, FrameIntervals, show=True, saveHTML=None):
 
 
         """
@@ -132,7 +104,8 @@ class ClusterizeMatrix:
 
         FrameIntervals: numpy.ndarray
             Numpy array of shape (NumberOfSystems, 2), to visualise frame
-            distribution between clusters.
+            distribution between clusters. It's an attr of the Calc Object
+            (RMSDAvA Module)
 
 		  FigOut: str
 			Save Generated heatmap to this file       
@@ -146,91 +119,40 @@ class ClusterizeMatrix:
         saveHTML: str
             If not None, saves RMSD Heatmap as an interactive HTML object, to this file. 
 
+        PrmtopList: str
+            If not None, in the Cluster TreeMap, instead of "structure #", the corresponding
+            "structure name" will be used
              
         """
-        clusterColors = ['g', 'c', 'y', 'k', 'w']
-        clusterMarkers = ['o', 'v', 's', 'p', '*', 'h', 'D']
-
-        ## First we have to plot the RMSD AvA
-        heatmap = plt.imshow(self.RMSDMatrix, cmap="viridis", vmax=vmax)
-        colormap = plt.colorbar(heatmap)
- 
-        ## Then we add colored points to mark the clusters
-
-        for i in range (len(self.framesInClust)):
-            for ClusterPoint in (self.framesInClust[i]):
-                plt.plot(ClusterPoint, ClusterPoint, clusterMarkers[int(i/5)] + clusterColors[i%5], label="Cluster " + str(i+1))
-    
-        for ClusterCenterIx in range(len(self.mins)):
-            plt.plot(self.mins[ClusterCenterIx], self.mins[ClusterCenterIx], "xm")
-
-        plt.title("All-vs-All RMSD Heatmap ($\AA\,$) + Cluster Data", fontsize=20)
-
         
-       
-        ## Now we add a legend, so we know what point is in what cluster. Note:
-## in order to have a non-redundant legend, we use a dict (since there can't
-## be 2 of the same key in a dict object
 
-        handles,labels = plt.gca().get_legend_handles_labels()
-        test = dict(zip(labels,handles))
-        plt.legend(test.values(),test.keys())
-       
-  
-        ## Then just save and/or display
+
+        ##Generate a PANDAS Dataframe, to be able to use Plotly easily
+
+        Column_names_clusters = ["No. Of Frames"]
+
+        clusters = []
+        clusterSize = []
+        for i in range (len(self.framesInClust)):			
+            clusters.append("Cluster " + str(i+1)) 
+            clusterSize.append(len(self.framesInClust[i]))
  
-        if (FigOut is not None):
-            plt.savefig(FigOut + ".png", dpi=800)   
-    
-        if (show == True):
-            plt.show()
+        Pandas_Data = {"Cluster": clusters, "Number Of Frames": clusterSize, "Frames": self.framesInClust}
 
-
-
+        Pandas_clusters = pd.DataFrame(data=Pandas_Data)
+  
+        print (Pandas_clusters) 
+        
         ##HTML Part
+       
+        print(clusters) 
+        fig = px.treemap(Pandas_clusters,
+              labels=clusters,
+              path=["Cluster"],
+              values="Number Of Frames",
+              )
+
         if (saveHTML is not None):
-            fig = px.imshow(self.RMSDMatrix, color_continuous_scale="viridis", zmax=vmax)
-
-            for i in range (len(self.framesInClust)):
-#               for ClusterPoint in (self.framesInClust[i]):
-                print (self.framesInClust[i])
-                fig.add_trace(go.Scatter(x=[self.framesInClust[i], self.framesInClust[i]], 
-                                     y=[self.framesInClust[i], self.framesInClust[i]], 
-                                     name="Cluster " + str(i+1),
-                                     marker_symbol=100,
-                                     mode="markers",
-                                     fill="toself"))
-
-            for ClusterCenterIx in range(len(self.mins)):
-                fig.add_trace(go.Scatter(x=[self.mins[ClusterCenterIx]], 
-                                         y=[self.mins[ClusterCenterIx]], 
-                                         marker=dict(size=12, line=dict(width=4, color='DarkSlateGrey')),
-                                         marker_symbol=4))
-
-			
-
-            ##Add frameIntervals lines
-            if (FrameIntervals is not None):
-	            for i in range(self.frameIntervals.shape[0]-1):
-	                CutoffPoint = self.frameIntervals[i][1]-0.5
-	            ##Vertical Lines
-	                fig.add_trace(go.Scatter(x=[CutoffPoint, CutoffPoint],
-	                                         y=[0,self.frameIntervals[-1][1]],
-	                                         hoverinfo=None,
-	                                         showlegend=False,
-	                                         mode='lines',
-	                                         line=dict(color="black", width=4)))
-	            ##Horizontal Lines
-	                fig.add_trace(go.Scatter(x=[0,self.frameIntervals[-1][1]],
-	                                         y=[CutoffPoint, CutoffPoint],
-	                                         hoverinfo=None,
-	                                         showlegend=False,
-	                                         mode='lines',
-	                                         line=dict(color="black", width=4)))
-	 
-            fig.update_layout(legend=dict(
-                yanchor="top",
-                xanchor="right"))
-            
-            #fig.write_html(saveHTML)
+            fig.write_html(saveHTML)
+        if (show == True):
             fig.show()
