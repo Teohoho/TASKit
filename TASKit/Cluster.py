@@ -22,7 +22,37 @@ from scipy.spatial.distance import squareform
 import numpy as np
 import matplotlib.pyplot as plt
 
+import plotly.express as px
+import plotly.graph_objects as go
 
+def GetLimitsOfConsequentialNumbers(ListIn,Stride=1):
+    """ A function that gets limits of consequential number sequences from a large, non-continuous
+        sequence of ordered numbers i.e. :
+
+        [0,1,2,3,6,7,8,9] => [[0,3],[6,9]]
+ 
+    Parameters
+    ----------
+
+    ListIn: list 
+        List to be parsed
+    
+    Stride: int
+        Minimum value that separates two consecutive elements of the list
+
+
+    Returns 
+    ----------
+
+    ListOut:
+        Resulting nested list
+
+    """
+
+#    for elementIx in range(len(ListIn)):
+#        if ListIn[elementIx] == ListIn[elementIx+1]-Stride
+
+    return "None"
 
 class ClusterizeMatrix:
 
@@ -43,15 +73,6 @@ class ClusterizeMatrix:
         If true, then load only the protein atoms. This saves memory, since most
         DCDs also contain more water atoms than protein atoms, and they are often
         not taken into account when calculating RMSD
-             
-    Notes
-    -----
-    
-    An example of a valid pair of PRMTOPs and DCDS is:
-    prmtops = [prmtop1, prmtop2]
-    DCDS = [[DCD11, DCD12, DCD13], [DCD21, DCD22]]
-     
-    Also, this uses MDTraj to load parameters and trajectories.
     
     """
 
@@ -99,7 +120,34 @@ class ClusterizeMatrix:
         print (self.mins)
         self.RMSDMatrix = RMSDMatrix
         
-    def GenerateHeatmap(self, FigOut=None, show=True, vmax=None):
+    def GenerateHeatmap(self, FrameIntervals, FigOut=None, show=True, vmax=None, saveHTML=None):
+
+
+        """
+        This function generates (and optionally saves) a heatmap of
+        the RMSD All-vs-All matrix, for easier visualization.
+        
+        Parameters
+        ----------
+
+        FrameIntervals: numpy.ndarray
+            Numpy array of shape (NumberOfSystems, 2), to visualise frame
+            distribution between clusters.
+
+		  FigOut: str
+			Save Generated heatmap to this file       
+ 
+        vmax: int
+            Maximum value on the colorbar.        
+        
+        show: bool
+            Show the heatmap
+         
+        saveHTML: str
+            If not None, saves RMSD Heatmap as an interactive HTML object, to this file. 
+
+             
+        """
         clusterColors = ['g', 'c', 'y', 'k', 'w']
         clusterMarkers = ['o', 'v', 's', 'p', '*', 'h', 'D']
 
@@ -117,6 +165,8 @@ class ClusterizeMatrix:
             plt.plot(self.mins[ClusterCenterIx], self.mins[ClusterCenterIx], "xm")
 
         plt.title("All-vs-All RMSD Heatmap ($\AA\,$) + Cluster Data", fontsize=20)
+
+        
        
         ## Now we add a legend, so we know what point is in what cluster. Note:
 ## in order to have a non-redundant legend, we use a dict (since there can't
@@ -125,12 +175,62 @@ class ClusterizeMatrix:
         handles,labels = plt.gca().get_legend_handles_labels()
         test = dict(zip(labels,handles))
         plt.legend(test.values(),test.keys())
-        
-        
+       
+  
         ## Then just save and/or display
  
         if (FigOut is not None):
             plt.savefig(FigOut + ".png", dpi=800)   
     
         if (show == True):
-            plt.show() 
+            plt.show()
+
+
+
+        ##HTML Part
+        if (saveHTML is not None):
+            fig = px.imshow(self.RMSDMatrix, color_continuous_scale="viridis", zmax=vmax)
+
+            for i in range (len(self.framesInClust)):
+#               for ClusterPoint in (self.framesInClust[i]):
+                print (self.framesInClust[i])
+                fig.add_trace(go.Scatter(x=[self.framesInClust[i], self.framesInClust[i]], 
+                                     y=[self.framesInClust[i], self.framesInClust[i]], 
+                                     name="Cluster " + str(i+1),
+                                     marker_symbol=100,
+                                     mode="markers",
+                                     fill="toself"))
+
+            for ClusterCenterIx in range(len(self.mins)):
+                fig.add_trace(go.Scatter(x=[self.mins[ClusterCenterIx]], 
+                                         y=[self.mins[ClusterCenterIx]], 
+                                         marker=dict(size=12, line=dict(width=4, color='DarkSlateGrey')),
+                                         marker_symbol=4))
+
+			
+
+            ##Add frameIntervals lines
+            if (FrameIntervals is not None):
+	            for i in range(self.frameIntervals.shape[0]-1):
+	                CutoffPoint = self.frameIntervals[i][1]-0.5
+	            ##Vertical Lines
+	                fig.add_trace(go.Scatter(x=[CutoffPoint, CutoffPoint],
+	                                         y=[0,self.frameIntervals[-1][1]],
+	                                         hoverinfo=None,
+	                                         showlegend=False,
+	                                         mode='lines',
+	                                         line=dict(color="black", width=4)))
+	            ##Horizontal Lines
+	                fig.add_trace(go.Scatter(x=[0,self.frameIntervals[-1][1]],
+	                                         y=[CutoffPoint, CutoffPoint],
+	                                         hoverinfo=None,
+	                                         showlegend=False,
+	                                         mode='lines',
+	                                         line=dict(color="black", width=4)))
+	 
+            fig.update_layout(legend=dict(
+                yanchor="top",
+                xanchor="right"))
+            
+            #fig.write_html(saveHTML)
+            fig.show()

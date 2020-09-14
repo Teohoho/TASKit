@@ -225,6 +225,4 @@ class Calc:
                                          mode='lines',
                                          line=dict(color="black", width=4)))
 
-            #fig.write_html(saveHTML)
-            fig.show()
-        
+            fig.write_html(saveHTML)

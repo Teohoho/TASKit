@@ -4,8 +4,8 @@ import numpy as np
 import sys
 
 ##Test load
-test_load1 = TASKit.TrajHandle.TrajLoader(prmtop="test/Peptide.prmtop", DCDS="test/Peptide_01.dcd", stride=1)
-test_load2 = TASKit.TrajHandle.TrajLoader(prmtop="test/Peptide.prmtop", DCDS="test/Peptide_02.dcd", stride=1)
+test_load1 = TASKit.TrajHandle.TrajLoader(prmtop="test/Peptide.prmtop", DCDS="test/Peptide_01.dcd", stride=100)
+test_load2 = TASKit.TrajHandle.TrajLoader(prmtop="test/Peptide.prmtop", DCDS="test/Peptide_02.dcd", stride=100)
 
 ##Test EP timeseries generation
 EPTSCorr1 = test_load1.GetPotentialEnergies(ProgressInt=10000)
@@ -30,10 +30,10 @@ RMSDMat = TASKit.RMSDAvA.Calc(TrajIn=[TrimmedTraj1, TrimmedTraj2], RMSDSele="bac
 #print ("RMSD FrameIntervals are:\n{}".format(RMSDMat.frameIntervals))
 #print ("RMSD Matrix:\n{}".format(RMSDMat.RMSD_Matrix))
 
-RMSDMat.RMSDAvAHeat(saveHTML="test01.html")
+#RMSDMat.RMSDAvAHeat(saveHTML="test01.html")
 
-#Clusters = TASKit.Cluster.ClusterizeMatrix(RMSDMat.RMSD_Matrix, 3.25)
-#Clusters.GenerateHeatmap()
+Clusters = TASKit.Cluster.ClusterizeMatrix(RMSDMat.RMSD_Matrix, 3.25)
+Clusters.GenerateHeatmap(saveHTML="testClust.html", show=False)
 
 print ("If this message has been printed, that means the tests have been passed succesfully. \
 You have all necesarry modules installed. Have a nice day!")
