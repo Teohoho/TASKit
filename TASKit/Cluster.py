@@ -141,11 +141,8 @@ class ClusterizeMatrix:
 
         Pandas_clusters = pd.DataFrame(data=Pandas_Data)
   
-        print (Pandas_clusters) 
-        
         ##HTML Part
        
-        print(clusters) 
         fig = px.treemap(Pandas_clusters,
               labels=clusters,
               path=["Cluster"],
