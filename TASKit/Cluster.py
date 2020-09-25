@@ -137,16 +137,18 @@ class ClusterizeMatrix:
             clusters.append("Cluster " + str(i+1)) 
             clusterSize.append(len(self.framesInClust[i]))
  
-        Pandas_Data = {"Cluster": clusters, "Number Of Frames": clusterSize, "Frames": self.framesInClust}
+        Pandas_Data = {"Cluster": clusters, "Number Of Frames": clusterSize, "Frames": self.framesInClust, "Representative Frames": self.mins}
 
         Pandas_clusters = pd.DataFrame(data=Pandas_Data)
-  
+ 
+        print (Pandas_clusters)
+ 
         ##HTML Part
        
         fig = px.treemap(Pandas_clusters,
-              labels=clusters,
-              path=["Cluster"],
-              values="Number Of Frames",
+              names="Cluster",
+              path=[cluster],
+              values="Number Of Frames"
               )
 
         if (saveHTML is not None):
