@@ -2,3 +2,4 @@
 * The pairwise energy calculation modules.
 * Legends for the Cluster module [Done!]
 * Finish writing "Attributes" for all modules.
+* Add "min of each cluster" to cluster HTML image
