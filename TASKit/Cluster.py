@@ -53,19 +53,19 @@ class ClusterizeMatrix:
         flatClusts = sch.fcluster(Z, FClusterCutoff, criterion='distance')
 
         flatClusts = np.array(flatClusts)
-        s = set()
+        listOfClusters = set()
         for a in range (flatClusts.shape[0]):
-            s.add(flatClusts[a])
+            listOfClusters.add(flatClusts[a])
         
-        print ("Number of Clusters: " + str(len(s)))            
+        print ("Number of Clusters: " + str(len(listOfClusters)))            
             
-        self.framesInClust = len(s) * [None]
-        for j in range(len(s)):
+        self.framesInClust = len(listOfClusters) * [None]
+        for j in range(len(listOfClusters)):
             if (verbosity == True):
                 print ("In cluster " + str(j+1) + " are the following frames: " , end='')
             self.framesInClust[j] = []
             for i in range (flatClusts.shape[0]):
-                if (flatClusts[i] == list(s)[j]):
+                if (flatClusts[i] == list(listOfClusters)[j]):
                     if (verbosity == True):
                         print (i, end = ", ")
                     self.framesInClust[j].append(i)
@@ -84,8 +84,14 @@ class ClusterizeMatrix:
                     j = self.framesInClust[clustIx][Jx]
                     distM[Ix][Jx] = RMSDMatrix[i][j]
             # Teodor score
-            avgs = [np.mean(distM[i]) for i in range(distM.shape[0])]
-            self.mins[clustIx] = self.framesInClust[clustIx][np.argmin(avgs)]
+#            avgs = [np.mean(distM[i]) for i in range(distM.shape[0])]
+#            self.mins[clustIx] = self.framesInClust[clustIx][np.argmin(avgs)]
+ 
+            # MDTraj Score
+            beta = 1
+            index = np.exp(-beta*distM[i] / distM[i].std()).sum(axis=1).argmax()
+            self.mins[clustIx] = index
+ 
 
         print ("The min of each cluster, RMSD-wise:")
         print (self.mins)
