@@ -113,12 +113,7 @@ class ClusterizeMatrix:
             distribution between clusters. It's an attr of the Calc Object
             (RMSDAvA Module)
 
-		  FigOut: str
-			Save Generated heatmap to this file       
  
-        vmax: int
-            Maximum value on the colorbar.        
-        
         show: bool
             Show the heatmap
          
