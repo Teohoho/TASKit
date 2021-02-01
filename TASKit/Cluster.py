@@ -153,7 +153,7 @@ class ClusterizeMatrix:
        
         fig = px.treemap(Pandas_clusters,
               names="Cluster",
-              path=[cluster],
+              path=[clusters],
               values="Number Of Frames"
               )
 
