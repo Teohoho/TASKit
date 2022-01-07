@@ -47,18 +47,65 @@ class ClusterizeMatrix:
     
     """
 
-    def __init__(self, RMSDMatrix, FClusterCutoff, verbosity=True):
+    def __init__(self, RMSDMatrix, FClusterCutoff, ClusterGoal, MaxTrials=10, verbosity=True):
         reduced_distances = squareform(RMSDMatrix, checks=False) # Memory error
         Z = sch.linkage(reduced_distances, method='weighted') # 'single', 'complete', 'weighted', and 'average'
-        flatClusts = sch.fcluster(Z, FClusterCutoff, criterion='distance')
+        if (ClusterGoal is not None):
+            ClusterNumber = None
+            Trials = 0
+            Increment = 1
+            while (Increment > 0.001):
+                while (ClusterNumber != ClusterGoal and Trials < MaxTrials):
+                    
+                    flatClusts = sch.fcluster(Z, FClusterCutoff, criterion='distance')
+    
+                    flatClusts = np.array(flatClusts)
+                    listOfClusters = set()
+                    for a in range (flatClusts.shape[0]):
+                        listOfClusters.add(flatClusts[a])
+                    ClusterNumber = len(listOfClusters)
+                
+                    #print ("Number of Clusters: " + str(len(listOfClusters)))
+                    if (len(listOfClusters) > ClusterGoal):
+                       	NewClusterCutoff = FClusterCutoff + Increment 
+                        if (NewClusterCutoff < 0):
+                            Increment = Increment/10
+                            NewClusterCutoff = FClusterCutoff - Increment
+                          
+                        print("Number of clusters ({}) larger than Cluster Goal ({}). Switching to Cluster Cutoff: {}".format(len(listOfClusters),ClusterGoal,NewClusterCutoff))	 
+                        Trials += 1  
+                        FClusterCutoff = NewClusterCutoff
+                    if (len(listOfClusters) < ClusterGoal):
+                       	NewClusterCutoff = FClusterCutoff - Increment 
+                        print("Number of clusters ({}) smaller than Cluster Goal ({}). Switching to Cluster Cutoff: {}".format(len(listOfClusters),ClusterGoal,NewClusterCutoff))	 
+                        Trials += 1              
+                        FClusterCutoff = NewClusterCutoff
+         
+                    #print(Increment)
+                    #print(Trials)
 
-        flatClusts = np.array(flatClusts)
-        listOfClusters = set()
-        for a in range (flatClusts.shape[0]):
-            listOfClusters.add(flatClusts[a])
-        
-        print ("Number of Clusters: " + str(len(listOfClusters)))            
+                    if (len(listOfClusters) == ClusterGoal):
+                        Increment = 0
+                        print ("Cluster Number reached! ({}). FClusterCutoff value is: {}".format(len(listOfClusters), FClusterCutoff))
+                #print(Increment)
+                Trials = 0
+                Increment = Increment/10
+            if (len(listOfClusters) != ClusterGoal):
+                print ("Increment limit reached. Closest number of clusters reached: {}. \
+Restart with this FClusterCutoff to reach desired number of clusters.".format((len(listOfClusters))))
+
+        else:
+            flatClusts = sch.fcluster(Z, FClusterCutoff, criterion='distance')
             
+            flatClusts = np.array(flatClusts)
+            listOfClusters = set()
+            for a in range (flatClusts.shape[0]):
+                listOfClusters.add(flatClusts[a])
+            ClusterNumber = len(listOfClusters)
+            
+            print ("Number of Clusters: " + str(len(listOfClusters)))
+            
+
         self.framesInClust = len(listOfClusters) * [None]
         for j in range(len(listOfClusters)):
             if (verbosity == True):
@@ -84,19 +131,24 @@ class ClusterizeMatrix:
                     j = self.framesInClust[clustIx][Jx]
                     distM[Ix][Jx] = RMSDMatrix[i][j]
             # Teodor score
-#            avgs = [np.mean(distM[i]) for i in range(distM.shape[0])]
-#            self.mins[clustIx] = self.framesInClust[clustIx][np.argmin(avgs)]
- 
+            avgs = [np.mean(distM[i]) for i in range(distM.shape[0])]
+            self.mins[clustIx] = self.framesInClust[clustIx][np.argmin(avgs)]
+
+#            print (distM)
+            
             # MDTraj Score
-            beta = 1
-            index = np.exp(-beta*distM[i] / distM[i].std()).sum(axis=1).argmax()
-            self.mins[clustIx] = index
+#            beta = 1
+#            index = (np.exp(-beta*distM[i] / distM[i].std()).sum(axis=1) for i in range (distM.shape[0]))
+#            print (index)
+#            highestSim = np.argmax(index)
+#            self.mins[clustIx] = index
  
 
         print ("The min of each cluster, RMSD-wise:")
         print (self.mins)
 
         self.RMSDMatrix = RMSDMatrix
+           
 
     def GenerateHeatmap(self, FrameIntervals, show=True, saveHTML=None):
 
