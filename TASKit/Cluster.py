@@ -47,7 +47,7 @@ class ClusterizeMatrix:
     
     """
 
-    def __init__(self, RMSDMatrix, FClusterCutoff, ClusterGoal, MaxTrials=10, verbosity=True):
+    def __init__(self, RMSDMatrix, FClusterCutoff, ClusterGoal=None, MaxTrials=10, verbosity=True):
         reduced_distances = squareform(RMSDMatrix, checks=False) # Memory error
         Z = sch.linkage(reduced_distances, method='weighted') # 'single', 'complete', 'weighted', and 'average'
         if (ClusterGoal is not None):
